@@ -1,19 +1,9 @@
 
+// 纯函数（Pure Function）
+// reducer 是不允许有副作用的。你不能在里面操作 DOM，也不能发 Ajax 请求，更不能直接修改 state，它要做的仅仅是 —— 初始化和计算新的 state。
+function createStore (reducer) {
 
-
-let appState = {
-    title: {
-        text: 'title',
-        color: 'red'
-    },
-    content: {
-        text: 'content',
-        color: 'blue'
-    }
-}
-
-
-function createStore (state, stateChanger) {
+    let state = null;
 
     const listeners = [];
     const subscribe = (listener) => {
@@ -23,10 +13,12 @@ function createStore (state, stateChanger) {
     const getState = () => state;
     const dispatch = (action) => {
 
-        state = stateChanger(state, action);
+        state = reducer(state, action);
 
         listeners.forEach((listener) => listener())
     }
+    dispatch({}); // 初始化state
+
     return { getState, dispatch, subscribe }
 }
 
@@ -40,7 +32,7 @@ function renderApp (newAppState, oldAppState = {}) {
 }
 
 function renderTitle (newTitle, oldTitle = {}) {
-    if (newTitle === oldTitle) return // 数据没有变化就不渲染了
+    if (newTitle === oldTitle) return
     console.log('render title...')
     const titleDom = document.getElementById('title');
     titleDom.innerHTML = newTitle.text;
@@ -48,7 +40,7 @@ function renderTitle (newTitle, oldTitle = {}) {
 }
 
 function renderContent (newContent, oldContent = {}) {
-    if (newContent === oldContent) return // 数据没有变化就不渲染了
+    if (newContent === oldContent) return
     console.log('render content...')
     const contentDom = document.getElementById('content');
     contentDom.innerHTML = newContent.text;
@@ -57,6 +49,21 @@ function renderContent (newContent, oldContent = {}) {
 
 
 function stateChanger (state, action) {
+
+    if ( !state ) {
+        return {
+            title: {
+                text: 'title',
+                color: 'red'
+            },
+            content: {
+                text: 'content',
+                color: 'blue'
+            }
+        }
+    }
+
+
     switch (action.type) {
         case 'UPDATE_TITLE_TEXT' :
             return {
@@ -80,7 +87,7 @@ function stateChanger (state, action) {
 }
 
 
-const store = createStore(appState, stateChanger);
+const store = createStore(stateChanger);
 let oldState = store.getState();
 
 // 监听数据变化
